@@ -1,0 +1,18 @@
+[Unit]
+Description=OpenClaw Smart Display
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/opt/openclaw-display
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/openclaw-display/.venv/bin/python /opt/openclaw-display/app/main.py --config /opt/openclaw-display/pi/config/display.yaml
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
