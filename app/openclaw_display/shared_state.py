@@ -19,7 +19,7 @@ class SharedDisplayState:
     # Info panels (news, reminders, etc.)
     panels: list[InfoPanel] = field(default_factory=list)
 
-    # Current request phase: "idle" | "thinking" | "speaking" | "reading"
+    # Current request phase: "idle" | "thinking" | "speaking" | "reading" | "returning"
     phase: str = "idle"
     response_text: str = ""
     phase_start: float = field(default_factory=time.time)

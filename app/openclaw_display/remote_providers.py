@@ -28,8 +28,8 @@ class RemoteRequestFlowProvider(RequestFlowProvider):
         thinking  → THINKING  (held until OpenClaw pushes next phase)
         speaking  → SPEAKING  (held until OpenClaw pushes next phase)
         reading   → READING   (auto-advances to RETURNING after READ_DURATION)
-                  → RETURNING (auto-advances to idle after RETURN_DURATION)
-        done      → idle immediately
+                  → RETURNING (smooth slide back; then idle after RETURN_DURATION)
+        done      → RETURNING (smooth slide back; then idle after RETURN_DURATION)
     """
 
     def __init__(self, state: SharedDisplayState) -> None:
@@ -70,7 +70,7 @@ class RemoteRequestFlowProvider(RequestFlowProvider):
                 )
             ret_elapsed = elapsed - READ_DURATION
             if ret_elapsed < RETURN_DURATION:
-                # Sliding back to idle
+                # Sliding back to idle (auto after 14s)
                 return RequestVisual(
                     phase=RequestPhase.RETURNING,
                     response_text=response_text,
@@ -78,6 +78,18 @@ class RemoteRequestFlowProvider(RequestFlowProvider):
                     scroll_progress=1.0,
                 )
             # Fully returned — reset to idle
+            self._state.push_phase("idle")
+            return None
+
+        if phase == "returning":
+            # API sent "done" or we entered returning from reading — smooth slide back
+            if elapsed < RETURN_DURATION:
+                return RequestVisual(
+                    phase=RequestPhase.RETURNING,
+                    response_text=response_text,
+                    phase_progress=elapsed / RETURN_DURATION,
+                    scroll_progress=1.0,
+                )
             self._state.push_phase("idle")
             return None
 

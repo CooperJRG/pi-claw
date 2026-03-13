@@ -175,7 +175,7 @@ class DisplayRenderer:
         self._prev_in_request = in_request
 
         # Keep digit time current
-        time_str = now.strftime("%H:%M")
+        time_str = now.strftime("%I:%M")
         self._flap.update(time_str, t)
 
         # Update face cards each frame while face is visible

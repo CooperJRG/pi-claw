@@ -99,7 +99,8 @@ def _make_handler(state: SharedDisplayState) -> type[BaseHTTPRequestHandler]:
             response_text = str(body.get("response_text", ""))
 
             if phase == "done":
-                state.push_phase("idle")
+                # Start smooth slide-back; provider will transition to idle after RETURN_DURATION
+                state.push_phase("returning")
             else:
                 state.push_phase(phase, response_text)
 
