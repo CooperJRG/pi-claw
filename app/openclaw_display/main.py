@@ -1,27 +1,32 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime, timedelta
+import logging
+from datetime import datetime
 
 import pygame
 
 from .config import load_config
-from .models import AssistantState, RequestPhase
-from .providers import (
-    MockAssistantEventProvider,
-    MockNowPlayingProvider,
-    MockReminderProvider,
-    MockRequestFlowProvider,
-    MockWeatherProvider,
-)
+from .providers import MockInfoPanelProvider, MockRequestFlowProvider, MockWeatherProvider
+from .remote_providers import RemoteInfoPanelProvider, RemoteRequestFlowProvider
+from .server import DisplayServer
+from .shared_state import SharedDisplayState
 from .state_machine import DisplayStateMachine
 from .ui import DisplayRenderer
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="OpenClaw Smart Display")
     parser.add_argument("--config", default="pi/config/display.yaml", help="Path to YAML config")
-    parser.add_argument("--windowed", action="store_true", help="Force windowed mode for development")
+    parser.add_argument("--windowed", action="store_true", help="Force windowed mode")
+    parser.add_argument(
+        "--mock",
+        action="store_true",
+        help="Use mock providers (no HTTP server — for local development)",
+    )
+    parser.add_argument("--port", type=int, default=8080, help="HTTP server port (default 8080)")
     return parser.parse_args()
 
 
@@ -36,68 +41,52 @@ def main() -> int:
 
     clock = pygame.time.Clock()
     renderer = DisplayRenderer(config)
-    renderer.setup_fonts()
+    renderer.setup()
 
-    weather_provider = MockWeatherProvider()
-    now_playing_provider = MockNowPlayingProvider()
-    reminder_provider = MockReminderProvider()
-    event_provider = MockAssistantEventProvider()
-    request_provider = MockRequestFlowProvider()
+    weather_prov = MockWeatherProvider()
+    server: DisplayServer | None = None
 
-    machine = DisplayStateMachine(event_provider)
+    if args.mock:
+        panel_prov = MockInfoPanelProvider()
+        request_prov = MockRequestFlowProvider()
+    else:
+        state = SharedDisplayState()
+        server = DisplayServer(state, port=args.port)
+        server.start()
+        panel_prov = RemoteInfoPanelProvider(state)
+        request_prov = RemoteRequestFlowProvider(state)
 
-    weather = weather_provider.get_weather()
-    now_playing = now_playing_provider.get_now_playing()
-    reminder = reminder_provider.get_next_reminder()
+    machine = DisplayStateMachine(request_prov)
+    weather = weather_prov.get_weather()
 
     running = True
-    manual_state: tuple[AssistantState, datetime] | None = None
-
     while running:
         now = datetime.now()
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key in (pygame.K_q, pygame.K_ESCAPE):
                     running = False
-                elif event.key == pygame.K_1:
-                    manual_state = (AssistantState.IDLE, now + timedelta(seconds=20))
-                elif event.key == pygame.K_2:
-                    manual_state = (AssistantState.THINKING, now + timedelta(seconds=20))
-                elif event.key == pygame.K_3:
-                    manual_state = (AssistantState.SPEAKING, now + timedelta(seconds=20))
-                elif event.key == pygame.K_4:
-                    manual_state = (AssistantState.OFFLINE, now + timedelta(seconds=20))
 
-        snapshot = machine.tick(now)
-        request_visual = request_provider.get_request_visual(now)
-
-        state = snapshot.state
-        if request_visual:
-            if request_visual.phase == RequestPhase.THINKING:
-                state = AssistantState.THINKING
-            else:
-                state = AssistantState.SPEAKING
-
-        if manual_state and now < manual_state[1]:
-            state = manual_state[0]
-        elif manual_state and now >= manual_state[1]:
-            manual_state = None
+        state_val, request = machine.tick(now)
+        panels = panel_prov.get_panels()
 
         renderer.draw(
             surface=screen,
             now=now,
-            assistant_state=state,
+            state=state_val,
             weather=weather,
-            now_playing=now_playing,
-            reminder=reminder,
-            card=snapshot.card,
-            request_visual=request_visual,
+            panels=panels,
+            request=request,
         )
+
         pygame.display.flip()
         clock.tick(config.app.fps)
 
+    if server:
+        server.stop()
     pygame.quit()
     return 0
 

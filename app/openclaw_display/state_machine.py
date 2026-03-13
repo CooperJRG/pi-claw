@@ -1,30 +1,19 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import datetime
 
-from .models import AssistantState, DisplayCard
-from .providers import AssistantEventProvider
-
-
-@dataclass
-class DisplaySnapshot:
-    state: AssistantState
-    card: DisplayCard | None
+from .models import AssistantState, RequestPhase, RequestVisual
+from .providers import RequestFlowProvider
 
 
 class DisplayStateMachine:
-    def __init__(self, events: AssistantEventProvider) -> None:
-        self._events = events
-        self._active_card: DisplayCard | None = None
+    def __init__(self, request_flow: RequestFlowProvider) -> None:
+        self._request_flow = request_flow
 
-    def tick(self, now: datetime) -> DisplaySnapshot:
-        if self._active_card and now >= self._active_card.expires_at:
-            self._active_card = None
-
-        new_card = self._events.get_card(now)
-        if new_card is not None:
-            self._active_card = new_card
-
-        state = self._events.get_state(now)
-        return DisplaySnapshot(state=state, card=self._active_card)
+    def tick(self, now: datetime) -> tuple[AssistantState, RequestVisual | None]:
+        visual = self._request_flow.get_request_visual(now)
+        if visual is None:
+            return AssistantState.IDLE, None
+        if visual.phase == RequestPhase.THINKING:
+            return AssistantState.THINKING, visual
+        return AssistantState.SPEAKING, visual

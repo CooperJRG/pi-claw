@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta
-from random import Random
+from datetime import datetime
 
-from .models import AssistantState, DisplayCard, NowPlayingInfo, ReminderInfo, RequestPhase, RequestVisual, WeatherInfo
+from .models import InfoPanel, Notification, RequestPhase, RequestVisual, WeatherInfo
 
 
 class WeatherProvider(ABC):
@@ -13,25 +12,15 @@ class WeatherProvider(ABC):
         raise NotImplementedError
 
 
-class NowPlayingProvider(ABC):
+class NotificationProvider(ABC):
     @abstractmethod
-    def get_now_playing(self) -> NowPlayingInfo | None:
+    def get_notifications(self) -> list[Notification]:
         raise NotImplementedError
 
 
-class ReminderProvider(ABC):
+class InfoPanelProvider(ABC):
     @abstractmethod
-    def get_next_reminder(self) -> ReminderInfo | None:
-        raise NotImplementedError
-
-
-class AssistantEventProvider(ABC):
-    @abstractmethod
-    def get_state(self, now: datetime) -> AssistantState:
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_card(self, now: datetime) -> DisplayCard | None:
+    def get_panels(self) -> list[InfoPanel]:
         raise NotImplementedError
 
 
@@ -41,96 +30,129 @@ class RequestFlowProvider(ABC):
         raise NotImplementedError
 
 
+# ---------------------------------------------------------------------------
+# Mock implementations for demo / offline mode
+# ---------------------------------------------------------------------------
+
+
 class MockWeatherProvider(WeatherProvider):
     def get_weather(self) -> WeatherInfo:
-        return WeatherInfo(summary="Partly Cloudy", temperature_c=21.0, high_c=24.0, low_c=17.0)
+        return WeatherInfo(temperature="21\u00b0", condition="Partly Cloudy")
 
 
-class MockNowPlayingProvider(NowPlayingProvider):
-    def get_now_playing(self) -> NowPlayingInfo:
-        return NowPlayingInfo(title="Here Comes the Sun", artist="The Beatles", source="Mock Spotify")
+class MockNotificationProvider(NotificationProvider):
+    _sets: list[list[Notification]] = [
+        [
+            Notification("Bitcoin rallies past $100k as markets surge"),
+            Notification("Call Sam at 3:15 PM"),
+        ],
+        [
+            Notification("Partly cloudy skies expected through the weekend"),
+            Notification("Grocery pickup ready at 5:00 PM"),
+        ],
+    ]
+
+    def get_notifications(self) -> list[Notification]:
+        idx = (datetime.now().minute // 3) % len(self._sets)
+        return self._sets[idx]
 
 
-class MockReminderProvider(ReminderProvider):
-    def get_next_reminder(self) -> ReminderInfo:
-        due = datetime.now().replace(second=0, microsecond=0) + timedelta(hours=1, minutes=15)
-        return ReminderInfo(label="Call Sam", due_at=due)
-
-
-class MockAssistantEventProvider(AssistantEventProvider):
-    """Mostly idle status with occasional offline simulation."""
-
-    def __init__(self) -> None:
-        self._rng = Random(42)
-        self._last_card_minute: int | None = None
-
-    def get_state(self, now: datetime) -> AssistantState:
-        if now.minute % 17 == 0 and now.second < 8:
-            return AssistantState.OFFLINE
-        return AssistantState.IDLE
-
-    def get_card(self, now: datetime) -> DisplayCard | None:
-        if now.minute % 5 == 0 and self._last_card_minute != now.minute and self._rng.random() > 0.5:
-            self._last_card_minute = now.minute
-            return DisplayCard.from_duration(
-                title="OpenClaw Update",
-                body="Hydration reminder: have a glass of water.",
-                duration_sec=20,
-            )
-        return None
+class MockInfoPanelProvider(InfoPanelProvider):
+    def get_panels(self) -> list[InfoPanel]:
+        idx = (datetime.now().minute // 3) % 2
+        if idx == 0:
+            return [
+                InfoPanel(
+                    title="NEWS",
+                    items=[
+                        "Bitcoin rallies past $100k",
+                        "Markets close up 1.2%",
+                        "Partly cloudy weekend ahead",
+                    ],
+                ),
+                InfoPanel(
+                    title="REMINDERS",
+                    items=[
+                        "Call Sam at 3:15 PM",
+                        "Grocery pickup at 5:00 PM",
+                    ],
+                ),
+            ]
+        return [
+            InfoPanel(
+                title="NEWS",
+                items=[
+                    "Tech earnings beat estimates",
+                    "Local transit delays expected",
+                ],
+            ),
+            InfoPanel(
+                title="REMINDERS",
+                items=[
+                    "Dentist appt tomorrow 9 AM",
+                    "Submit expense report by EOD",
+                    "Water the plants",
+                ],
+            ),
+        ]
 
 
 class MockRequestFlowProvider(RequestFlowProvider):
-    """Deterministic dummy requests to demo face + response transitions."""
+    """Cycles through a dummy request flow every ~45 seconds."""
 
     def __init__(self) -> None:
-        self._cycle_sec = 48.0
-        self._thinking_sec = 4.0
-        self._speaking_sec = 3.0
-        self._reading_sec = 14.0
-        self._return_sec = 2.0
+        self._cycle = 45.0
+        self._idle = 24.0
+        self._think = 4.0
+        self._speak = 3.0
+        self._read = 12.0
+        self._ret = 2.0
         self._response = (
-            "Good morning! Forecast is mild and partly cloudy. "
-            "You have one reminder at 3:15 PM to call Sam. "
-            "If you want, I can also show today's headlines next."
+            "Good morning! Today\u2019s forecast is mild at 21 degrees "
+            "with partly cloudy skies. You have one reminder: call "
+            "Sam at 3:15 PM. Headlines are quiet today \u2014 markets "
+            "are up slightly and no severe weather alerts in your area. "
+            "Would you like me to set a reminder for anything else?"
         )
 
     def get_request_visual(self, now: datetime) -> RequestVisual | None:
-        t = now.timestamp() % self._cycle_sec
-        if t > (self._thinking_sec + self._speaking_sec + self._reading_sec + self._return_sec):
+        t = now.timestamp() % self._cycle
+        if t < self._idle:
             return None
 
-        if t <= self._thinking_sec:
+        t -= self._idle
+
+        if t < self._think:
             return RequestVisual(
                 phase=RequestPhase.THINKING,
                 response_text=self._response,
-                phase_progress=t / self._thinking_sec,
-                response_scroll_px=0.0,
+                phase_progress=t / self._think,
+                scroll_progress=0.0,
             )
+        t -= self._think
 
-        t -= self._thinking_sec
-        if t <= self._speaking_sec:
+        if t < self._speak:
             return RequestVisual(
                 phase=RequestPhase.SPEAKING,
                 response_text=self._response,
-                phase_progress=t / self._speaking_sec,
-                response_scroll_px=0.0,
+                phase_progress=t / self._speak,
+                scroll_progress=0.0,
             )
+        t -= self._speak
 
-        t -= self._speaking_sec
-        if t <= self._reading_sec:
-            progress = t / self._reading_sec
+        if t < self._read:
+            p = t / self._read
             return RequestVisual(
                 phase=RequestPhase.READING,
                 response_text=self._response,
-                phase_progress=progress,
-                response_scroll_px=progress * 220.0,
+                phase_progress=p,
+                scroll_progress=p,
             )
+        t -= self._read
 
-        t -= self._reading_sec
         return RequestVisual(
             phase=RequestPhase.RETURNING,
             response_text=self._response,
-            phase_progress=t / self._return_sec,
-            response_scroll_px=220.0,
+            phase_progress=min(t / self._ret, 1.0),
+            scroll_progress=1.0,
         )

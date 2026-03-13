@@ -14,17 +14,36 @@ class AppConfig:
     fps: int = 20
     fullscreen: bool = False
     title: str = "OpenClaw Smart Display"
-    card_duration_sec: int = 20
 
 
 @dataclass
 class ThemeConfig:
-    background: tuple[int, int, int] = (26, 28, 34)
-    card_background: tuple[int, int, int] = (45, 49, 58)
-    accent: tuple[int, int, int] = (205, 188, 148)
-    text_primary: tuple[int, int, int] = (244, 238, 224)
-    text_secondary: tuple[int, int, int] = (189, 179, 157)
-    warning: tuple[int, int, int] = (245, 196, 136)
+    # Macintosh-inspired warm palette
+    background: tuple[int, int, int] = (241, 237, 228)
+    flap_bg: tuple[int, int, int] = (38, 36, 33)
+    flap_text: tuple[int, int, int] = (245, 241, 232)
+    flap_split: tuple[int, int, int] = (58, 55, 50)
+    text_primary: tuple[int, int, int] = (42, 40, 36)
+    text_secondary: tuple[int, int, int] = (130, 126, 118)
+    border: tuple[int, int, int] = (200, 196, 188)
+    notif_bg: tuple[int, int, int] = (228, 224, 216)
+    face_iris: tuple[int, int, int] = (78, 92, 108)
+    face_eye: tuple[int, int, int] = (232, 228, 220)
+    face_pupil: tuple[int, int, int] = (22, 24, 28)
+    face_mouth: tuple[int, int, int] = (210, 198, 182)
+    bubble_bg: tuple[int, int, int] = (250, 248, 242)
+    bubble_border: tuple[int, int, int] = (180, 176, 168)
+    # Retro window chrome
+    win_titlebar: tuple[int, int, int] = (42, 40, 36)
+    win_titlebar_text: tuple[int, int, int] = (232, 228, 220)
+    win_border: tuple[int, int, int] = (62, 58, 52)
+    win_btn_close: tuple[int, int, int] = (180, 80, 70)
+    win_btn_dim: tuple[int, int, int] = (120, 116, 108)
+    # Terminal panel (warm Macintosh / E-Ink tones)
+    terminal_bg: tuple[int, int, int] = (250, 248, 242)
+    terminal_text: tuple[int, int, int] = (42, 40, 36)
+    terminal_prompt: tuple[int, int, int] = (100, 96, 88)
+    terminal_dim: tuple[int, int, int] = (170, 166, 158)
 
 
 @dataclass
@@ -51,22 +70,18 @@ def load_config(path: str | Path | None = None) -> DisplayConfig:
     app_data = data.get("app", {})
     theme_data = data.get("theme", {})
 
+    defaults = DisplayConfig()
     app = AppConfig(
-        width=int(app_data.get("width", 720)),
-        height=int(app_data.get("height", 720)),
-        fps=int(app_data.get("fps", 20)),
-        fullscreen=bool(app_data.get("fullscreen", False)),
-        title=str(app_data.get("title", "OpenClaw Smart Display")),
-        card_duration_sec=int(app_data.get("card_duration_sec", 20)),
+        width=int(app_data.get("width", defaults.app.width)),
+        height=int(app_data.get("height", defaults.app.height)),
+        fps=int(app_data.get("fps", defaults.app.fps)),
+        fullscreen=bool(app_data.get("fullscreen", defaults.app.fullscreen)),
+        title=str(app_data.get("title", defaults.app.title)),
     )
 
-    theme = ThemeConfig(
-        background=_tuple_color(theme_data.get("background"), (26, 28, 34)),
-        card_background=_tuple_color(theme_data.get("card_background"), (45, 49, 58)),
-        accent=_tuple_color(theme_data.get("accent"), (205, 188, 148)),
-        text_primary=_tuple_color(theme_data.get("text_primary"), (244, 238, 224)),
-        text_secondary=_tuple_color(theme_data.get("text_secondary"), (189, 179, 157)),
-        warning=_tuple_color(theme_data.get("warning"), (245, 196, 136)),
-    )
+    theme = ThemeConfig()
+    for name in ThemeConfig.__dataclass_fields__:
+        if name in theme_data:
+            setattr(theme, name, _tuple_color(theme_data[name], getattr(theme, name)))
 
     return DisplayConfig(app=app, theme=theme)

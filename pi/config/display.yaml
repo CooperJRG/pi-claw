@@ -4,12 +4,18 @@ app:
   fps: 20
   fullscreen: false
   title: OpenClaw Smart Display
-  card_duration_sec: 20
 
 theme:
-  background: [26, 28, 34]
-  card_background: [45, 49, 58]
-  accent: [205, 188, 148]
-  text_primary: [244, 238, 224]
-  text_secondary: [189, 179, 157]
-  warning: [245, 196, 136]
+  background: [241, 237, 228]
+  flap_bg: [38, 36, 33]
+  flap_text: [245, 241, 232]
+  flap_split: [58, 55, 50]
+  text_primary: [42, 40, 36]
+  text_secondary: [130, 126, 118]
+  border: [200, 196, 188]
+  face_bg: [50, 48, 44]
+  face_eye: [241, 237, 228]
+  face_pupil: [38, 36, 33]
+  face_mouth: [220, 214, 200]
+  bubble_bg: [250, 248, 242]
+  bubble_border: [180, 176, 168]
