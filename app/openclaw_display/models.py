@@ -12,6 +12,13 @@ class AssistantState(str, Enum):
     OFFLINE = "offline"
 
 
+class RequestPhase(str, Enum):
+    THINKING = "thinking"
+    SPEAKING = "speaking"
+    READING = "reading"
+    RETURNING = "returning"
+
+
 @dataclass
 class WeatherInfo:
     summary: str
@@ -42,3 +49,11 @@ class DisplayCard:
     @classmethod
     def from_duration(cls, title: str, body: str, duration_sec: int) -> "DisplayCard":
         return cls(title=title, body=body, expires_at=datetime.now() + timedelta(seconds=duration_sec))
+
+
+@dataclass
+class RequestVisual:
+    phase: RequestPhase
+    response_text: str
+    phase_progress: float
+    response_scroll_px: float

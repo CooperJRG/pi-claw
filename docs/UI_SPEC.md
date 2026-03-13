@@ -50,6 +50,14 @@ A calm, legible, gift-worthy square display with subtle personality and a sleek-
 - Auto-expires and fades back to pure idle
 - Intended for future OpenClaw/cron-triggered reminders or announcements
 
+
+## Request transition demo behavior (dummy v1)
+- On incoming request, idle transitions to a **face mode**.
+- During thinking, large clock is replaced by animated face; current time moves to top-left.
+- During speaking start, mouth opens and a speech-bubble corner grows from the left side.
+- Display then slides left to reveal a full response panel, with slow auto-scroll for readability.
+- After timeout, panel slides right and UI returns to idle cleanly.
+
 ## Style constraints
 - Calm dark background + warm champagne accent color
 - High contrast text for glanceability

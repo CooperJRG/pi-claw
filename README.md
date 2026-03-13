@@ -67,6 +67,7 @@ A lightweight, square-first smart display app built for Raspberry Pi 3. This v1 
    - `2`: force thinking (20s)
    - `3`: force speaking (20s)
    - `4`: force offline (20s)
+   - requests auto-demo in timed cycles for UI validation
    - `q` / `esc`: exit
 
 ## Pi setup flow (first install)
@@ -122,6 +123,7 @@ PI_HOST=pi@raspberrypi.local FOLLOW=1 bash pi/scripts/logs_remote.sh
 - Default surface is idle mode with strong glanceable layout.
 - Lightweight overlays represent thinking, speaking, offline states.
 - No microphone/listening UI is implemented.
+- Dummy request flow now demonstrates: face takeover in thinking, mouth-open speaking, left slide into full response, auto-scroll text, and slide-back to idle.
 - Weather/music/reminders/custom cards are mock-backed for stable demo mode.
 - Custom temporary cards auto-expire and return to idle.
 

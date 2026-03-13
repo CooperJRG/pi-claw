@@ -43,8 +43,9 @@ V1 uses provider interfaces so real sources can be introduced without reworking 
 - `NowPlayingProvider`
 - `ReminderProvider`
 - `AssistantEventProvider`
+- `RequestFlowProvider` (request-phase animation + response payload boundary)
 
-Current implementations are mocks to guarantee runnable behavior with no external dependencies.
+Current implementations are mocks to guarantee runnable behavior with no external dependencies, including a deterministic request-flow demo provider that exercises thinking/speaking/response transitions.
 
 ## Future OpenClaw integration boundary
 A future OpenClaw bridge should implement `AssistantEventProvider` and can map external events into:
