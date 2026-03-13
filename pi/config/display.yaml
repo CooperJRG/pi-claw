@@ -1,0 +1,15 @@
+app:
+  width: 720
+  height: 720
+  fps: 20
+  fullscreen: false
+  title: OpenClaw Smart Display
+  card_duration_sec: 20
+
+theme:
+  background: [26, 28, 34]
+  card_background: [45, 49, 58]
+  accent: [205, 188, 148]
+  text_primary: [244, 238, 224]
+  text_secondary: [189, 179, 157]
+  warning: [245, 196, 136]
