@@ -3,6 +3,7 @@
 A lightweight, square-first smart display app built for Raspberry Pi 3. This v1 is intentionally practical:
 
 - **Idle mode is the core product** (big clock + useful ambient panels)
+- sleek-retro visual styling (Apple Lisa + Apple Watch face inspired)
 - graceful fallback if integrations are missing
 - mock-driven runtime that works tomorrow without external APIs
 - Pi is a **deployment target**, not the source-of-truth dev machine

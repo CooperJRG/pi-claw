@@ -19,12 +19,12 @@ class AppConfig:
 
 @dataclass
 class ThemeConfig:
-    background: tuple[int, int, int] = (20, 24, 32)
-    card_background: tuple[int, int, int] = (34, 39, 50)
-    accent: tuple[int, int, int] = (128, 186, 255)
-    text_primary: tuple[int, int, int] = (240, 242, 247)
-    text_secondary: tuple[int, int, int] = (160, 171, 191)
-    warning: tuple[int, int, int] = (255, 180, 130)
+    background: tuple[int, int, int] = (26, 28, 34)
+    card_background: tuple[int, int, int] = (45, 49, 58)
+    accent: tuple[int, int, int] = (205, 188, 148)
+    text_primary: tuple[int, int, int] = (244, 238, 224)
+    text_secondary: tuple[int, int, int] = (189, 179, 157)
+    warning: tuple[int, int, int] = (245, 196, 136)
 
 
 @dataclass
@@ -61,12 +61,12 @@ def load_config(path: str | Path | None = None) -> DisplayConfig:
     )
 
     theme = ThemeConfig(
-        background=_tuple_color(theme_data.get("background"), (20, 24, 32)),
-        card_background=_tuple_color(theme_data.get("card_background"), (34, 39, 50)),
-        accent=_tuple_color(theme_data.get("accent"), (128, 186, 255)),
-        text_primary=_tuple_color(theme_data.get("text_primary"), (240, 242, 247)),
-        text_secondary=_tuple_color(theme_data.get("text_secondary"), (160, 171, 191)),
-        warning=_tuple_color(theme_data.get("warning"), (255, 180, 130)),
+        background=_tuple_color(theme_data.get("background"), (26, 28, 34)),
+        card_background=_tuple_color(theme_data.get("card_background"), (45, 49, 58)),
+        accent=_tuple_color(theme_data.get("accent"), (205, 188, 148)),
+        text_primary=_tuple_color(theme_data.get("text_primary"), (244, 238, 224)),
+        text_secondary=_tuple_color(theme_data.get("text_secondary"), (189, 179, 157)),
+        warning=_tuple_color(theme_data.get("warning"), (245, 196, 136)),
     )
 
     return DisplayConfig(app=app, theme=theme)

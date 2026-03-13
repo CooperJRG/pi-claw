@@ -7,9 +7,9 @@ app:
   card_duration_sec: 20
 
 theme:
-  background: [20, 24, 32]
-  card_background: [34, 39, 50]
-  accent: [128, 186, 255]
-  text_primary: [240, 242, 247]
-  text_secondary: [160, 171, 191]
-  warning: [255, 180, 130]
+  background: [26, 28, 34]
+  card_background: [45, 49, 58]
+  accent: [205, 188, 148]
+  text_primary: [244, 238, 224]
+  text_secondary: [189, 179, 157]
+  warning: [245, 196, 136]

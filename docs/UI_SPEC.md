@@ -1,7 +1,7 @@
 # UI Specification (v1)
 
 ## Design intent
-A calm, legible, gift-worthy square display with subtle personality. Idle screen quality is the main success criteria.
+A calm, legible, gift-worthy square display with subtle personality and a sleek-retro finish inspired by Apple Lisa-era restraint and Apple Watch face clarity. Idle screen quality is the main success criteria.
 
 ## Visual priorities
 1. Time readability
@@ -51,7 +51,8 @@ A calm, legible, gift-worthy square display with subtle personality. Idle screen
 - Intended for future OpenClaw/cron-triggered reminders or announcements
 
 ## Style constraints
-- Calm dark background + soft accent color
+- Calm dark background + warm champagne accent color
 - High contrast text for glanceability
 - Avoid clutter and excessive constant animation
 - Avoid playful/cartoon face metaphors in v1
+- Use restrained geometric framing and "complication" style cards instead of flashy chrome
